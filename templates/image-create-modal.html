@@ -1,0 +1,122 @@
+<div id="createImageModal" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">创建镜像</h4>
+            </div>
+            <div class="modal-body">
+                <form id="image" class="form-horizontal" action="/images/create/" method="POST">
+                {% csrf_token %}
+                    <div class="control-group hg">
+                        <label class="control-label" for="environ">版本库地址</label>
+                        <div class="controls">
+                            <select  class="form-control" id="repo_path" name="repo_path" style="width:350px">
+                                <option value="-1">请选择</option>
+                                <!--<input type="text" class="form-control" id="repo_path" name='repo_path' style="width:350px">-->
+                            </select>
+                            <span class="help-inline">(版本库地址，必选项)</span>
+                        </div>  
+                    </div>
+                    <div class="control-group branch">
+                        <label class="control-label" for="branch">分支号</label>
+                        <div class="controls">
+                            <input type="text" class="form-control" id="repo_branch" name='repo_branch' style="width:350px">
+                            <span class="help-inline">(版本库的分支号，必填项)</span>
+                        </div>  
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-primary btn-ok" data-dismiss="modal" onclick="createImage()">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+$('#createImageModal').on('shown.bs.modal', function() {
+        $("#repo_path").val("");
+        $("#repo_branch").val("");
+        $("#image_desc").val("");
+
+        var project_id = '{{ project_info.id }}';
+        var url = "/hgs/?project_id=" + project_id;
+        $.ajax({
+              type: "GET",
+              dataType: "json",
+              url: url }).done(function( data ) {
+              $("#repo_path option[value !='-1']").remove();
+              for (var i in data){
+                $("#repo_path").append("<option value=" + data[i].id + ">" + data[i].repo_path + "</option>");
+              }
+        });
+
+});
+
+$("#repo_path").change(function(){
+    $("#repo_branch").val('default');
+    var repos_id = $("#repo_path").val();
+    var text = $("#repo_path").text();
+    var text_array=text.split("/"); 
+    $("#image_desc").val(text_array.pop());
+    var id=$("#repo_path").find("option:selected").val();
+    url = "/hgs/mavens/?repos_id=" + id;
+    $.ajax({
+      type: "GET",
+      dataType: "json",
+      url: url}).done(function(repo_info) { 
+          $("#flags").val(repo_info.path);
+    });
+
+});
+
+function createXmlHttpRequest(){
+            if(window.ActiveXObject){ //如果是IE浏览器
+                return new ActiveXObject("Microsoft.XMLHTTP");
+            }
+            else if(window.XMLHttpRequest){ //非IE浏览器
+                return new XMLHttpRequest();
+            }
+        }
+
+function createImage()
+{
+    var project_id = "{{ project_info.id }}"; 
+    var repos_id = document.getElementById('repo_path').value;
+    var repo_branch = document.getElementById('repo_branch').value; 
+    var image_desc = document.getElementById('image_desc').value;
+
+    var http = new createXmlHttpRequest();
+    var url ="/images/create/";
+    var params = "project_id=" + project_id + "&image_desc=" + image_desc + "&repos_id=" + repos_id + "&repo_branch=" + repo_branch;
+    //alert(params);
+    var token = '{{ csrf_token }}'; 
+    
+    http.open("POST",url,true);
+    http.setRequestHeader('X-CSRFToken', token);
+    http.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+    http.setRequestHeader("Content-length",params.length);
+    http.setRequestHeader("Connection", "close");
+    http.onreadystatechange = function() {
+        if(http.readyState == 4 && http.status == 200) {
+            var content = http.response;
+            var status = http.response.status; 
+            var url = '/images/update/?project_id=' + project_id;
+            if (status == 200){
+                $.ajax({
+                        type: "GET",
+                        url: url }).done(function( data ) {
+                                $("#image-table-{{project_info.id}}").html(data);
+                });
+            }
+        }
+    }
+    http.responseType = 'json';
+    http.send(params);
+
+}
+
+</script>
+

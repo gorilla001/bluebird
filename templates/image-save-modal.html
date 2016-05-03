@@ -1,0 +1,82 @@
+<div id="saveImageModal" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" style="margin:0px;padding:0px;">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title" style="text-align:center">生成镜像</h4>
+            </div>
+            <div id="editWindow" class="modal-body" style="background:#fff;margin:0px;padding:0px;">
+		<label cass="control-label" style="margin-left:350px;margin-top:10px;margin-bottom:10px;">
+                     请输入要保存的镜像名称 
+		</label>
+                <div class="controls">
+                    <input type="text" value="" id="ctnId" style="display:none;">
+                    <input type="text" value="" id="imgId" style="display:none;">
+                    <input type="text" value="" class="form-control" id="imgName" name='image_n' style="width:300px;margin-left:300px;margin-bottom:10px;">
+                </div>
+            </div>
+            <div class="modal-footer" style="margin-top:0px;">
+                <button id="img_name_2" value="" type="button" class="btn btn-default destroy_temp_ctn_2" data-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-primary btn-ok save-image" data-dismiss="modal">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="errorImageModal" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" style="margin:0px;padding:0px;">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title" style="text-align:center">出错了</h4>
+            </div>
+            <div class="modal-body" style="background:#fff;margin:0px;padding:0px;">
+		<label cass="control-label" style="margin-left:150px;margin-top:10px;margin-bottom:10px;" >
+		   不能再创建新镜像了，每个项目最多能创建12个镜像，请删除不用的镜像后重试！ 
+		</label>
+            </div>
+            <div class="modal-footer" style="margin-top:0px;">
+                <button class="btn btn-primary btn-ok" data-dismiss="modal" style="color:#fff;background-color:#fff;border:none">好吧</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(".save-image").on("click",function(){
+	var text = $("#imgName").val();
+        if (text.indexOf(":") >=0)
+        {
+	    var repo = text.split(":")[0];
+            var tag  = text.split(":")[1];
+        }
+        else {
+            var repo = "";
+            var tag  = text;
+        }
+	var ctn = $("#ctnId").val();
+	var id = $("#imgId").val();
+	var url = "/images/commit?repo=" + repo + "&tag=" + tag + "&ctn=" + ctn + "&id=" + id + "&proj_id=" + '{{ project_info.id }}';
+	$.ajax({
+		type:"GET",
+		dataType:"json",
+		url:url
+	}).done(function(data){
+	    if ( data.status == 100 )
+		{
+		    $("#errorImageModal").modal('show');   }
+	});
+});
+	
+$('.destroy_temp_ctn_2').on("click",function() {
+	var name = $("#img_name_2").val();
+	url = "/containers/destroy?name=" + name;
+	$.ajax({
+            type: "GET",
+	    dataType: "json",
+            url: url }).done(function( data ) {
+		;
+    	});
+});
+
+</script>
+

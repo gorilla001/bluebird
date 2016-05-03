@@ -1,0 +1,28 @@
+.navbar-default {
+    color:#fff;
+    background-color: #009966;
+}
+
+@media(min-width:768px) {
+    #wrapper {
+        padding-left: 100px;
+        padding-right: 100px;
+    }
+
+#page-wrapper {
+    margin-top: 80px;
+}
+
+.nav-tabs {
+    margin-top: 80px;
+}
+
+
+.panel-heading {
+    height:50px;
+    border:none;
+    background-color: #001122;
+    padding:5px;
+
+}
+
